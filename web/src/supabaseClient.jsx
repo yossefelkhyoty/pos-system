@@ -1,17 +1,20 @@
-// src/supabaseClient.js - ملف جديد
+// src/supabaseClient.jsx
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
-const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
+const supabaseUrl =
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_URL) ||
+  (typeof process !== 'undefined' && process.env?.REACT_APP_SUPABASE_URL) ||
+  '';
 
-// تأكد من أن القيم موجودة
+const supabaseKey =
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_ANON_KEY) ||
+  (typeof process !== 'undefined' && process.env?.REACT_APP_SUPABASE_ANON_KEY) ||
+  '';
+
 if (!supabaseUrl || !supabaseKey) {
-  console.error('❌ إعدادات Supabase غير مكتملة في ملف .env');
-  console.log('REACT_APP_SUPABASE_URL:', supabaseUrl ? 'موجود' : 'مفقود');
-  console.log('REACT_APP_SUPABASE_ANON_KEY:', supabaseKey ? 'موجود' : 'مفقود');
+  console.warn('⚠️ Supabase credentials missing! Check your .env file in the web folder.');
 }
 
-// أنشئ client واحد فقط
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
     autoRefreshToken: true,
@@ -21,7 +24,6 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
   }
 });
 
-// دالة للتحقق من الاتصال
 export const checkSupabaseConnection = async () => {
   try {
     const { error } = await supabase.from('products').select('id').limit(1);

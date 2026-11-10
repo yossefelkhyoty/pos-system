@@ -1,8 +1,30 @@
-// src/AdminApp.jsx - النسخة المصححة
+// src/AdminApp.jsx
 import React, { useState, useEffect } from 'react';
 import { supabase, checkSupabaseConnection } from './supabaseClient';
-import { useNavigate } from 'react-router-dom';
 import { useDarkMode } from './useDarkMode';
+import {
+  Package,
+  Users,
+  AlertTriangle,
+  Moon,
+  Sun,
+  LogOut,
+  Search,
+  Eye,
+  EyeOff,
+  Copy,
+  Check,
+  RefreshCw,
+  Phone,
+  LayoutGrid,
+  Wifi,
+  WifiOff,
+  ExternalLink,
+  ShieldCheck,
+  TrendingDown,
+  Layers,
+  Bell
+} from 'lucide-react';
 
 import './AdminApp.css';
 
@@ -14,7 +36,7 @@ function AdminApp() {
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [authError, setAuthError] = useState('');
-  const [activeTab, setActiveTab] = useState('all');
+  const [activeTab, setActiveTab] = useState('all'); // 'all', 'products', 'customers', 'low-stock'
   const [searchTerm, setSearchTerm] = useState('');
   const [searchType, setSearchType] = useState('all');
   const [loading, setLoading] = useState(false);
@@ -23,14 +45,12 @@ function AdminApp() {
   const [showPassword, setShowPassword] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState('online');
   const [lowStockProducts, setLowStockProducts] = useState([]);
+  const [copiedCustomerId, setCopiedCustomerId] = useState(null);
+  const [showLowStockBanner, setShowLowStockBanner] = useState(true);
   const [darkMode, toggleDarkMode] = useDarkMode();
 
-  const navigate = useNavigate();
-
-  // التحقق من اتصال Supabase مرة واحدة عند التحميل
   useEffect(() => {
     const initializeApp = async () => {
-      // التحقق من اتصال Supabase
       const connectionResult = await checkSupabaseConnection();
       if (!connectionResult.success) {
         setConnectionError(connectionResult.message);
@@ -39,49 +59,27 @@ function AdminApp() {
       }
 
       setConnectionChecked(true);
-
-      // التحقق من بيانات تسجيل الدخول المحفوظة
-      const savedCredentials = localStorage.getItem('adminCredentials');
-      if (savedCredentials) {
-        try {
-          const { email: savedEmail, password: savedPassword } = JSON.parse(savedCredentials);
-          setEmail(savedEmail);
-          setPassword(savedPassword);
-          setRememberMe(true);
-          await handleSignIn(savedEmail, savedPassword);
-        } catch (error) {
-          console.error('خطأ في تحميل البيانات المحفوظة:', error);
-          localStorage.removeItem('adminCredentials');
-        }
-      } else {
-        // التحقق من الجلسة الحالية
-        await checkCurrentSession();
-      }
+      await checkCurrentSession();
     };
 
     initializeApp();
-    
-    // طلب إذن الإشعارات
     requestNotificationPermission();
-    
-    // مراقبة حالة الاتصال
+
     const handleOnline = () => setConnectionStatus('online');
     const handleOffline = () => setConnectionStatus('offline');
-    
+
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
-    
-    // فحص المنتجات منخفضة المخزون كل 30 ثانية
+
     const checkLowStockInterval = setInterval(() => {
       checkLowStockProducts();
     }, 30000);
-    
+
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
       clearInterval(checkLowStockInterval);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const checkCurrentSession = async () => {
@@ -92,25 +90,20 @@ function AdminApp() {
         await loadData();
       }
     } catch (error) {
-      console.error('خطأ في التحقق من الجلسة:', error);
+      console.error('Session check error:', error);
     }
   };
 
-  // طلب إذن الإشعارات
   const requestNotificationPermission = async () => {
     if ('Notification' in window && Notification.permission === 'default') {
       try {
-        const permission = await Notification.requestPermission();
-        if (permission === 'granted') {
-          console.log('تم منح إذن الإشعارات');
-        }
+        await Notification.requestPermission();
       } catch (error) {
-        console.error('خطأ في طلب إذن الإشعارات:', error);
+        console.error('Notification error:', error);
       }
     }
   };
 
-  // فحص المنتجات منخفضة المخزون
   const checkLowStockProducts = async () => {
     try {
       const { data: productsData, error } = await supabase
@@ -121,23 +114,21 @@ function AdminApp() {
       if (error) throw error;
 
       const lowStock = (productsData || []).filter(
-        product => product.quantity <= product.min_quantity
+        (product) => Number(product.quantity) <= Number(product.min_quantity)
       );
 
-      // إرسال إشعار إذا كان هناك منتجات منخفضة المخزون
       if (lowStock.length > 0 && Notification.permission === 'granted') {
-        const productNames = lowStock.map(p => p.name).join(', ');
+        const productNames = lowStock.slice(0, 3).map((p) => p.name).join('، ');
         new Notification('⚠️ تنبيه: منتجات منخفضة المخزون', {
-          body: `هناك ${lowStock.length} منتج منخفض المخزون: ${productNames}`,
+          body: `يوجد ${lowStock.length} منتج بحاجة لإعادة الشراء: ${productNames}`,
           icon: '/favicon.ico',
-          tag: 'low-stock',
-          requireInteraction: true
+          tag: 'low-stock'
         });
       }
 
       setLowStockProducts(lowStock);
     } catch (error) {
-      console.error('خطأ في فحص المنتجات منخفضة المخزون:', error);
+      console.error('Low stock check error:', error);
     }
   };
 
@@ -146,40 +137,41 @@ function AdminApp() {
       setLoading(true);
       setAuthError('');
 
-      // تحميل المنتجات
       const { data: productsData, error: productsError } = await supabase
         .from('products')
-        .select('*');
+        .select('*')
+        .eq('is_deleted', false);
 
       if (productsError) throw productsError;
       setProducts(productsData || []);
-      
-      // فحص المنتجات منخفضة المخزون
-      await checkLowStockProducts();
 
-      // تحميل العملاء
+      const lowStock = (productsData || []).filter(
+        (product) => Number(product.quantity) <= Number(product.min_quantity)
+      );
+      setLowStockProducts(lowStock);
+
       const { data: customersData, error: customersError } = await supabase
         .from('customers')
-        .select('*');
+        .select('*')
+        .eq('is_deleted', false);
 
       if (customersError) throw customersError;
 
-      // حساب الرصيد الكلي لكل عميل
+      // حساب رصيد كل عميل
       const customersWithBalance = await Promise.all(
         (customersData || []).map(async (customer) => {
           try {
             const balance = await calculateCustomerBalance(customer.id);
             return { ...customer, totalBalance: balance };
           } catch (error) {
-            console.error(`خطأ في حساب رصيد العميل ${customer.id}:`, error);
-            return { ...customer, totalBalance: 0 };
+            return { ...customer, totalBalance: Number(customer.amount_due) || 0 };
           }
         })
       );
 
       setCustomers(customersWithBalance);
     } catch (error) {
-      console.error('خطأ في تحميل البيانات:', error);
+      console.error('Load data error:', error);
       setAuthError('فشل في تحميل البيانات من قاعدة البيانات');
     } finally {
       setLoading(false);
@@ -188,47 +180,39 @@ function AdminApp() {
 
   const calculateCustomerBalance = async (customerId) => {
     try {
-      // جلب جميع المعاملات للعميل
-      const { data: transactionsData, error: transactionsError } = await supabase
+      const { data: trxData } = await supabase
         .from('customer_transactions')
         .select('*')
-        .eq('customer_id', customerId);
+        .eq('customer_id', customerId)
+        .eq('is_deleted', false);
 
-      if (transactionsError) throw transactionsError;
-
-      // جلب جميع المدفوعات للعميل
-      const { data: paymentsData, error: paymentsError } = await supabase
+      const { data: payData } = await supabase
         .from('payments')
         .select('*')
-        .eq('customer_id', customerId);
+        .eq('customer_id', customerId)
+        .eq('is_deleted', false);
 
-      if (paymentsError) throw paymentsError;
-
-      // حساب الرصيد الكلي
-      const totalSales = (transactionsData || [])
-        .filter(t => t.type === 'sale')
+      const totalSales = (trxData || [])
+        .filter((t) => t.type === 'sale')
         .reduce((sum, t) => sum + (Number(t.total) || 0), 0);
 
-      const totalReturns = (transactionsData || [])
-        .filter(t => t.type === 'return')
+      const totalReturns = (trxData || [])
+        .filter((t) => t.type === 'return')
         .reduce((sum, t) => sum + Math.abs(Number(t.total) || 0), 0);
 
-      const totalPayments = (paymentsData || [])
-        .reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+      const totalPayments = (payData || []).reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
 
       return totalSales - totalReturns - totalPayments;
     } catch (err) {
-      console.error('خطأ في حساب رصيد العميل:', err);
       return 0;
     }
   };
 
-  const handleSignIn = async (email, password) => {
+  const handleSignIn = async (e) => {
+    if (e) e.preventDefault();
     try {
       setAuthError('');
       setLoading(true);
-
-      console.log('محاولة تسجيل الدخول بـ:', email);
 
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
@@ -236,174 +220,149 @@ function AdminApp() {
       });
 
       if (error) {
-        console.error('خطأ المصادقة:', error);
-
         if (error.message.includes('Invalid login credentials')) {
-          setAuthError('⚠️ البريد الإلكتروني أو كلمة المرور غير صحيحة');
-        } else if (error.message.includes('Email not confirmed')) {
-          setAuthError('⚠️ يرجى تأكيد البريد الإلكتروني أولاً');
+          setAuthError('البريد الإلكتروني أو كلمة المرور غير صحيحة');
         } else {
-          setAuthError(`❌ خطأ في تسجيل الدخول: ${error.message}`);
+          setAuthError(`خطأ في تسجيل الدخول: ${error.message}`);
         }
         return false;
       }
 
-      console.log('تم تسجيل الدخول بنجاح:', data.user);
-      setUser(data.user);
-
-      // حفظ بيانات تسجيل الدخول إذا تم اختيار "تذكرني"
-      if (rememberMe) {
-        localStorage.setItem('adminCredentials', JSON.stringify({
-          email: email,
-          password: password
-        }));
-      } else {
-        localStorage.removeItem('adminCredentials');
+      if (data?.user) {
+        setUser(data.user);
+        await loadData();
+        return true;
       }
-
-      await loadData();
-      return true;
-    } catch (err) {
-      console.error('خطأ غير متوقع:', err);
-      setAuthError('❌ خطأ في الاتصال بالسيرفر - تأكد من اتصال الإنترنت');
+      return false;
+    } catch (error) {
+      setAuthError('حدث خطأ غير متوقع أثناء تسجيل الدخول');
       return false;
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSubmit = async (e) => {
-    if (e) {
-      e.preventDefault();
-    }
-    await handleSignIn(email, password);
-  };
-
   const signOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        setAuthError('خطأ في تسجيل الخروج: ' + error.message);
-      } else {
-        setUser(null);
-        setProducts([]);
-        setCustomers([]);
-        localStorage.removeItem('adminCredentials');
-      }
+      setLoading(true);
+      await supabase.auth.signOut();
+      setUser(null);
+      setProducts([]);
+      setCustomers([]);
     } catch (error) {
-      console.error('خطأ في تسجيل الخروج:', error);
+      console.error('Sign out error:', error);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const copyCustomerLink = (customer) => {
+    const tokenOrSlug = customer.portal_token || `${customer.name.replace(/\s+/g, '-')}-${customer.id}`;
+    const link = `${window.location.origin}/customer/${tokenOrSlug}`;
+
+    navigator.clipboard.writeText(link).then(() => {
+      setCopiedCustomerId(customer.id);
+      setTimeout(() => setCopiedCustomerId(null), 2500);
+    }).catch(() => {
+      const textArea = document.createElement('textarea');
+      textArea.value = link;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      setCopiedCustomerId(customer.id);
+      setTimeout(() => setCopiedCustomerId(null), 2500);
+    });
   };
 
   // فلترة البيانات
-  const filteredData = () => {
-    if (activeTab === 'products') {
-      return { products: filterProducts(products), customers: [] };
-    } else if (activeTab === 'customers') {
-      return { products: [], customers: filterCustomers(customers) };
-    } else {
-      return { products: filterProducts(products), customers: filterCustomers(customers) };
+  const filterProducts = (list) => {
+    let result = list;
+    if (activeTab === 'low-stock') {
+      result = result.filter((p) => Number(p.quantity) <= Number(p.min_quantity));
     }
-  };
-
-  const filterProducts = (productsList) => {
-    if (!searchTerm) return productsList;
-
-    return productsList.filter(product =>
-      product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.serial_number?.toLowerCase().includes(searchTerm.toLowerCase())
+    if (!searchTerm) return result;
+    return result.filter(
+      (p) =>
+        p.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.serial_number?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   };
 
-  const filterCustomers = (customersList) => {
-    if (!searchTerm) return customersList;
-
-    return customersList.filter(customer => {
-      const nameMatch = customer.name?.toLowerCase().includes(searchTerm.toLowerCase());
-      const phoneMatch = customer.phone?.includes(searchTerm);
-
+  const filterCustomers = (list) => {
+    if (activeTab === 'low-stock') return [];
+    if (!searchTerm) return list;
+    return list.filter((c) => {
+      const nameMatch = c.name?.toLowerCase().includes(searchTerm.toLowerCase());
+      const phoneMatch = c.phone?.includes(searchTerm);
       if (searchType === 'name') return nameMatch;
       if (searchType === 'phone') return phoneMatch;
-
       return nameMatch || phoneMatch;
     });
   };
 
-  const copyLink = (customer) => {
-    const customerName = customer.name.replace(/\s+/g, '-');
-    const link = `${window.location.origin}/customer/${customerName}-${customer.id}`;
+  const filteredProducts = filterProducts(products);
+  const filteredCustomers = filterCustomers(customers);
 
-    navigator.clipboard.writeText(link)
-      .then(() => alert('✅ تم نسخ الرابط!'))
-      .catch(err => {
-        console.error('فشل النسخ:', err);
-        // Fallback for older browsers
-        const textArea = document.createElement('textarea');
-        textArea.value = link;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-        alert('✅ تم نسخ الرابط!');
-      });
-  };
-
-  const { products: filteredProducts, customers: filteredCustomers } = filteredData();
-
+  // شاشة التحقق
   if (!connectionChecked) {
     return (
       <div className="login-container" dir="rtl">
         <div className="loading">
           <div className="spinner"></div>
-          <p>جاري التحقق من الاتصال...</p>
+          <p>جاري التحقق من الاتصال السحابي...</p>
         </div>
       </div>
     );
   }
 
+  // خطأ الاتصال
   if (connectionError) {
     return (
       <div className="login-container" dir="rtl">
         <div className="login-box">
-          <h1>❌ خطأ في الاتصال</h1>
+          <div className="error-icon-box">
+            <AlertTriangle size={48} color="#ef4444" />
+          </div>
+          <h1>تعذر الاتصال بـ Supabase</h1>
           <div className="error-message">
             <p>{connectionError}</p>
-            <p>يرجى التحقق من:</p>
-            <ul>
-              <li>ملف .env وإعدادات Supabase</li>
-              <li>اتصال الإنترنت</li>
-              <li>أن المشروع مفعل في Supabase Dashboard</li>
-            </ul>
+            <p className="mt-2 text-sm text-gray-400">تأكد من صحة المفاتيح في ملف .env وتوفر اتصال بالإنترنت.</p>
           </div>
+          <button className="login-btn mt-4" onClick={() => window.location.reload()}>
+            <RefreshCw size={18} className="inline ml-2" /> إعادة المحاولة
+          </button>
         </div>
       </div>
     );
   }
 
+  // شاشة تسجيل الدخول
   if (!user) {
     return (
       <div className={`login-container ${darkMode ? 'dark-mode' : ''}`} dir="rtl">
-        <button 
+        <button
           className="dark-mode-toggle-login"
           onClick={toggleDarkMode}
           title={darkMode ? 'الوضع الفاتح' : 'الوضع الداكن'}
         >
-          {darkMode ? '☀️' : '🌙'}
+          {darkMode ? <Sun size={20} /> : <Moon size={20} />}
         </button>
+
         <div className="login-box">
-          <h1>تسجيل الدخول إلى نظام علي الجداوي</h1>
+          <div className="brand-logo">
+            <ShieldCheck size={40} className="brand-icon" />
+          </div>
+          <h1>لوحة إدارة علي الجداوي</h1>
+          <p className="login-subtitle">سجل الدخول بحساب الأدمن لإدارة المبيعات والعملاء</p>
 
-          {authError && (
-            <div className="error-message">
-              {authError}
-            </div>
-          )}
+          {authError && <div className="error-message">{authError}</div>}
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSignIn}>
             <div className="input-group">
               <input
                 type="email"
-                placeholder="البريد الإلكتروني"
+                placeholder="البريد الإلكتروني للأدمن"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -412,7 +371,7 @@ function AdminApp() {
 
             <div className="input-group password-group">
               <input
-                type={showPassword ? "text" : "password"}
+                type={showPassword ? 'text' : 'password'}
                 placeholder="كلمة المرور"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -423,183 +382,418 @@ function AdminApp() {
                 className="toggle-password"
                 onClick={() => setShowPassword(!showPassword)}
               >
-                {showPassword ? "🙈" : "👁️"}
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
 
-            <div className="remember-me">
-              <input
-                type="checkbox"
-                id="rememberMe"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-              />
-              <label htmlFor="rememberMe">تذكرني</label>
-            </div>
-
             <button type="submit" className="login-btn" disabled={loading}>
-              {loading ? 'جاري التسجيل...' : 'تسجيل الدخول'}
+              {loading ? <RefreshCw className="animate-spin inline ml-2" size={18} /> : 'تسجيل الدخول'}
             </button>
           </form>
-
-
         </div>
       </div>
     );
   }
 
+  // الواجهة الرئيسية للأدمن
   return (
     <div className={`admin-app ${darkMode ? 'dark-mode' : ''}`} dir="rtl">
-      {/* حالة الاتصال */}
-      <div className={`connection-status ${connectionStatus}`}>
-        {connectionStatus === 'online' ? '🟢 متصل' : '🔴 غير متصل'}
+      {/* شريط الحالة والاتصال */}
+      <div className={`connection-status-pill ${connectionStatus}`}>
+        {connectionStatus === 'online' ? (
+          <>
+            <Wifi size={14} /> <span>متصل بالسحابة</span>
+          </>
+        ) : (
+          <>
+            <WifiOff size={14} /> <span>غير متصل</span>
+          </>
+        )}
       </div>
-      
-      <header>
-        <h1>لوحة تحكم علي الجداوي</h1>
+
+      {/* الهيدر العلوي */}
+      <header className="modern-header">
+        <div className="header-info">
+          <h1>لوحة تحكم المتجر</h1>
+          <p className="welcome-admin">مرحباً بك، {user.email}</p>
+        </div>
+
         <div className="header-actions">
-          <button 
-            className="dark-mode-toggle"
+          <button
+            className="action-icon-btn"
+            onClick={loadData}
+            title="تحديث البيانات"
+            disabled={loading}
+          >
+            <RefreshCw size={19} className={loading ? 'animate-spin' : ''} />
+          </button>
+
+          <button
+            className="action-icon-btn"
             onClick={toggleDarkMode}
             title={darkMode ? 'الوضع الفاتح' : 'الوضع الداكن'}
           >
-            {darkMode ? '☀️' : '🌙'}
+            {darkMode ? <Sun size={19} /> : <Moon size={19} />}
           </button>
-          <button onClick={signOut} disabled={loading}>
-            {loading ? '...' : 'تسجيل الخروج'}
+
+          <button
+            className="action-icon-btn logout-btn"
+            onClick={signOut}
+            title="تسجيل الخروج"
+          >
+            <LogOut size={19} />
           </button>
         </div>
       </header>
-      
-      {/* إشعار المنتجات منخفضة المخزون */}
-      {lowStockProducts.length > 0 && (
-        <div className="low-stock-alert">
-          <strong>⚠️ تنبيه:</strong> هناك {lowStockProducts.length} منتج منخفض المخزون
-          <ul>
-            {lowStockProducts.map(product => (
-              <li key={product.id}>
-                {product.name} - الكمية: {product.quantity} (الحد الأدنى: {product.min_quantity})
-              </li>
-            ))}
-          </ul>
+
+      {/* تنبيه المنتجات منخفضة المخزون - قابل للضغط والفلترة */}
+      {lowStockProducts.length > 0 && showLowStockBanner && (
+        <div className="stock-alert-banner">
+          <div className="stock-alert-content">
+            <div className="alert-icon-wrapper">
+              <AlertTriangle size={24} className="alert-icon" />
+            </div>
+            <div>
+              <strong>تنبيه نقص المخزون:</strong> يوجد{' '}
+              <span className="badge-count">{lowStockProducts.length}</span> منتج قارب على النفاد
+              <p className="stock-names">
+                {lowStockProducts.slice(0, 4).map((p) => p.name).join(' • ')}
+              </p>
+            </div>
+          </div>
+          <div className="stock-alert-actions">
+            <button
+              className="view-stock-btn"
+              onClick={() => setActiveTab('low-stock')}
+            >
+              عرض المنتجات
+            </button>
+            <button
+              className="dismiss-alert-btn"
+              onClick={() => setShowLowStockBanner(false)}
+            >
+              إخفاء
+            </button>
+          </div>
         </div>
       )}
 
-      <div className="nav-tabs">
-        <button
-          className={`nav-tab ${activeTab === 'all' ? 'active' : ''}`}
-          onClick={() => setActiveTab('all')}
-        >
-          الكل
-        </button>
-        <button
-          className={`nav-tab ${activeTab === 'products' ? 'active' : ''}`}
+      {/* بطاقات الإحصائيات السريعة */}
+      <div className="stats-row">
+        <div
+          className={`stat-card ${activeTab === 'products' ? 'active' : ''}`}
           onClick={() => setActiveTab('products')}
         >
-          المنتجات ({products.length})
-        </button>
-        <button
-          className={`nav-tab ${activeTab === 'customers' ? 'active' : ''}`}
+          <div className="stat-icon prod-icon">
+            <Package size={24} />
+          </div>
+          <div className="stat-text">
+            <span>إجمالي المنتجات</span>
+            <strong>{products.length}</strong>
+          </div>
+        </div>
+
+        <div
+          className={`stat-card ${activeTab === 'customers' ? 'active' : ''}`}
           onClick={() => setActiveTab('customers')}
         >
-          العملاء ({customers.length})
-        </button>
+          <div className="stat-icon cust-icon">
+            <Users size={24} />
+          </div>
+          <div className="stat-text">
+            <span>إجمالي العملاء</span>
+            <strong>{customers.length}</strong>
+          </div>
+        </div>
+
+        <div
+          className={`stat-card ${activeTab === 'low-stock' ? 'active' : ''} ${lowStockProducts.length > 0 ? 'warning' : ''}`}
+          onClick={() => setActiveTab('low-stock')}
+        >
+          <div className="stat-icon alert-icon-box">
+            <TrendingDown size={24} />
+          </div>
+          <div className="stat-text">
+            <span>نقص المخزون</span>
+            <strong>{lowStockProducts.length}</strong>
+          </div>
+        </div>
       </div>
 
-      <div className="search-section">
-        <input
-          type="text"
-          className="search-input"
-          placeholder={activeTab === 'customers' ? "ابحث بالاسم أو الهاتف..." : "ابحث عن المنتجات..."}
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
+      {/* شريط البحث المودرن */}
+      <div className="search-toolbar">
+        <div className="search-input-box">
+          <Search size={20} className="search-icon" />
+          <input
+            type="text"
+            placeholder={
+              activeTab === 'customers'
+                ? 'ابحث باسم العميل أو رقم هاتفه...'
+                : 'ابحث باسم المنتج أو الرقم التسلسلي...'
+            }
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          {searchTerm && (
+            <button className="clear-search" onClick={() => setSearchTerm('')}>
+              ×
+            </button>
+          )}
+        </div>
 
-        {(activeTab === 'customers' || activeTab === 'all') && (
-          <div className="search-options">
-            <select
-              value={searchType}
-              onChange={(e) => setSearchType(e.target.value)}
+        {activeTab === 'customers' && (
+          <div className="search-type-filters">
+            <button
+              className={`pill ${searchType === 'all' ? 'active' : ''}`}
+              onClick={() => setSearchType('all')}
             >
-              <option value="all">الكل</option>
-              <option value="name">بالاسم</option>
-              <option value="phone">بالهاتف</option>
-            </select>
+              الكل
+            </button>
+            <button
+              className={`pill ${searchType === 'name' ? 'active' : ''}`}
+              onClick={() => setSearchType('name')}
+            >
+              بالاسم
+            </button>
+            <button
+              className={`pill ${searchType === 'phone' ? 'active' : ''}`}
+              onClick={() => setSearchType('phone')}
+            >
+              بالهاتف
+            </button>
           </div>
         )}
       </div>
 
-      {loading ? (
-        <div className="loading">
-          <div className="spinner"></div>
-          <p>جاري تحميل البيانات...</p>
-        </div>
-      ) : (
-        <div className="dashboard">
-          {(activeTab === 'all' || activeTab === 'products') && (
-            <>
-              <h2>المنتجات ({filteredProducts.length})</h2>
-              {filteredProducts.length === 0 ? (
-                <p className="no-data">لا توجد منتجات</p>
-              ) : (
-                <div className="products-list">
-                  {filteredProducts.map(product => (
-                    <div key={product.id} className="product-card">
-                      <div className="product-header">
-                        <h3>{product.name}</h3>
-                        <span className="serial">{product.serial_number}</span>
+      {/* ألسنة التبويب للديسكتوب */}
+      <div className="desktop-tabs">
+        <button
+          className={`tab-btn ${activeTab === 'all' ? 'active' : ''}`}
+          onClick={() => setActiveTab('all')}
+        >
+          <LayoutGrid size={18} /> الكل
+        </button>
+        <button
+          className={`tab-btn ${activeTab === 'products' ? 'active' : ''}`}
+          onClick={() => setActiveTab('products')}
+        >
+          <Package size={18} /> المنتجات ({products.length})
+        </button>
+        <button
+          className={`tab-btn ${activeTab === 'customers' ? 'active' : ''}`}
+          onClick={() => setActiveTab('customers')}
+        >
+          <Users size={18} /> العملاء ({customers.length})
+        </button>
+        <button
+          className={`tab-btn ${activeTab === 'low-stock' ? 'active' : ''}`}
+          onClick={() => setActiveTab('low-stock')}
+        >
+          <AlertTriangle size={18} /> نواقص المخزون ({lowStockProducts.length})
+        </button>
+      </div>
+
+      {/* المحتوى الرئيسي للبطاقات */}
+      <main className="content-container">
+        {/* قسم المنتجات */}
+        {(activeTab === 'all' || activeTab === 'products' || activeTab === 'low-stock') && (
+          <section className="section-block">
+            <div className="section-header">
+              <h2>
+                <Package size={22} className="inline ml-2 text-indigo-500" />
+                {activeTab === 'low-stock' ? 'المنتجات منخفضة المخزون' : 'قائمة المنتجات'}
+                <span className="count-pill">{filteredProducts.length}</span>
+              </h2>
+            </div>
+
+            {filteredProducts.length === 0 ? (
+              <div className="empty-state">
+                <Package size={48} className="empty-icon" />
+                <p>لا توجد منتجات مطابقة للبحث</p>
+              </div>
+            ) : (
+              <div className="grid-cards">
+                {filteredProducts.map((product) => {
+                  const isLow = Number(product.quantity) <= Number(product.min_quantity);
+                  return (
+                    <div key={product.id} className={`item-card product-card ${isLow ? 'low-stock-border' : ''}`}>
+                      <div className="card-top">
+                        <span className="category-badge">{product.category || 'عام'}</span>
+                        {isLow && (
+                          <span className="stock-alert-tag">
+                            <AlertTriangle size={14} className="inline ml-1" /> قارب على النفاد
+                          </span>
+                        )}
                       </div>
-                      <div className="price-section">
-                        <span>السعر: {product.price} جنيها</span>
-                        <span>السعر العملاء: {product.wholesale_price} جنيها</span>
-                        <span>الكمية: {product.quantity}</span>
+
+                      <h3 className="card-title">{product.name}</h3>
+                      <p className="serial-num">سيريال: {product.serial_number}</p>
+
+                      <div className="card-metrics">
+                        <div className="metric">
+                          <span className="label">سعر البيع</span>
+                          <span className="value text-emerald-600">{Number(product.price).toFixed(2)} ج.م</span>
+                        </div>
+                        <div className="metric">
+                          <span className="label">الكمية المتاحة</span>
+                          <span className={`value font-bold ${isLow ? 'text-red-600' : 'text-indigo-600'}`}>
+                            {product.quantity}
+                          </span>
+                        </div>
+                        <div className="metric">
+                          <span className="label">سعر الجملة</span>
+                          <span className="value">{Number(product.wholesale_price).toFixed(2)} ج.م</span>
+                        </div>
+                        <div className="metric">
+                          <span className="label">الحد الأدنى</span>
+                          <span className="value">{product.min_quantity}</span>
+                        </div>
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </>
-          )}
+                  );
+                })}
+              </div>
+            )}
+          </section>
+        )}
 
-          {(activeTab === 'all' || activeTab === 'customers') && (
-            <>
-              <h2>العملاء ({filteredCustomers.length})</h2>
-              {filteredCustomers.length === 0 ? (
-                <p className="no-data">لا توجد عملاء</p>
-              ) : (
-                <div className="customers-list">
-                  {filteredCustomers.map(customer => (
-                    <div
-                      key={customer.id}
-                      className="customer-card"
-                      onClick={() => {
-                        const customerName = customer.name.replace(/\s+/g, '-');
-                        navigate(`/customer/${customerName}-${customer.id}`);
-                      }}
-                      style={{ cursor: 'pointer' }}
-                    >
-                      <h3>{customer.name}</h3>
-                      <p>الهاتف: {customer.phone || 'غير متوفر'}</p>
-                      <div className={`balance ${customer.totalBalance >= 0 ? 'positive' : 'negative'}`}>
-                        الرصيد الكلي: {customer.totalBalance?.toFixed(2)} جنيها
+        {/* قسم العملاء */}
+        {(activeTab === 'all' || activeTab === 'customers') && (
+          <section className="section-block">
+            <div className="section-header">
+              <h2>
+                <Users size={22} className="inline ml-2 text-violet-500" />
+                قائمة العملاء
+                <span className="count-pill">{filteredCustomers.length}</span>
+              </h2>
+            </div>
+
+            {filteredCustomers.length === 0 ? (
+              <div className="empty-state">
+                <Users size={48} className="empty-icon" />
+                <p>لا يوجد عملاء مطابقين للبحث</p>
+              </div>
+            ) : (
+              <div className="grid-cards">
+                {filteredCustomers.map((customer) => {
+                  const isCopied = copiedCustomerId === customer.id;
+                  const tokenOrSlug = customer.portal_token || `${customer.name.replace(/\s+/g, '-')}-${customer.id}`;
+                  return (
+                    <div key={customer.id} className="item-card customer-card">
+                      <div className="card-top">
+                        <span className="cust-date">{customer.date || '—'}</span>
+                        <span className={`balance-badge ${(customer.totalBalance || 0) > 0 ? 'debt' : 'clear'}`}>
+                          {(customer.totalBalance || 0) > 0 ? 'مديونية' : 'خالص'}
+                        </span>
                       </div>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          copyLink(customer);
-                        }}
-                      >
-                        نسخ رابط العميل
-                      </button>
-                    </div>
-                  ))}
 
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      )}
+                      <h3 className="card-title">{customer.name}</h3>
+
+                      {customer.phone && (
+                        <p className="phone-line">
+                          <Phone size={14} className="inline ml-1" />
+                          <a href={`tel:${customer.phone}`}>{customer.phone}</a>
+                        </p>
+                      )}
+
+                      <div className="balance-box">
+                        <span className="balance-label">الرصيد الإجمالي</span>
+                        <strong className="balance-number">
+                          {Number(customer.totalBalance || 0).toFixed(2)} ج.م
+                        </strong>
+                      </div>
+
+                      {customer.notes && <p className="notes-line">ملاحظة: {customer.notes}</p>}
+
+                      <div className="card-actions-footer">
+                        <button
+                          className={`copy-link-btn ${isCopied ? 'copied' : ''}`}
+                          onClick={() => copyCustomerLink(customer)}
+                        >
+                          {isCopied ? (
+                            <>
+                              <Check size={16} /> تم النسخ بنجاح!
+                            </>
+                          ) : (
+                            <>
+                              <Copy size={16} /> نسخ رابط البوابة
+                            </>
+                          )}
+                        </button>
+
+                        <a
+                          href={`/customer/${tokenOrSlug}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="open-portal-btn"
+                          title="فتح بوابة العميل"
+                        >
+                          <ExternalLink size={16} />
+                        </a>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+        )}
+      </main>
+
+      {/* شريط التنقل السفلي الاحترافي للموبايل (Bottom Navigation Bar) */}
+      <nav className="mobile-bottom-nav">
+        <button
+          className={`nav-item ${activeTab === 'all' ? 'active' : ''}`}
+          onClick={() => {
+            setActiveTab('all');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+        >
+          <LayoutGrid size={20} />
+          <span>الكل</span>
+        </button>
+
+        <button
+          className={`nav-item ${activeTab === 'products' ? 'active' : ''}`}
+          onClick={() => {
+            setActiveTab('products');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+        >
+          <Package size={20} />
+          <span>المنتجات</span>
+        </button>
+
+        <button
+          className={`nav-item ${activeTab === 'customers' ? 'active' : ''}`}
+          onClick={() => {
+            setActiveTab('customers');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+        >
+          <Users size={20} />
+          <span>العملاء</span>
+        </button>
+
+        <button
+          className={`nav-item alert-nav ${activeTab === 'low-stock' ? 'active' : ''}`}
+          onClick={() => {
+            setActiveTab('low-stock');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+        >
+          <div className="icon-with-badge">
+            <AlertTriangle size={20} />
+            {lowStockProducts.length > 0 && <span className="mini-badge">{lowStockProducts.length}</span>}
+          </div>
+          <span>النواقص</span>
+        </button>
+
+        <button className="nav-item" onClick={toggleDarkMode}>
+          {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+          <span>المظهر</span>
+        </button>
+      </nav>
     </div>
   );
 }
