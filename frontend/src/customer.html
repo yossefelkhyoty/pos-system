@@ -1,0 +1,185 @@
+<!-- customer.html -->
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <title>صفحة العميل - علي الجداوي</title>
+  <link rel="stylesheet" href="../assets/css/loky.css">
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+  <div id="globalNotification" class="notification-box"></div>
+  <div id="connection-status" class="connection-status"></div>
+
+  <button type="button" class="btn-back-customers" onclick="loadPage('customers.html')">← رجوع للعملاء</button>
+
+  <header>
+    <h1 id="customerName">العميل</h1>
+    <div id="customerSummary" style="margin: 10px 0; padding: 10px; background: #132121; border-radius: 5px;"></div>
+    <nav>
+      <button id="nav-home" onclick="loadPage('index.html')">الرئيسية</button>
+      <button id="nav-products" onclick="loadPage('products.html')">المنتجات</button>
+      <button id="nav-customers" onclick="loadPage('customers.html')">العملاء</button>
+      <button id="nav-dashboard" onclick="loadPage('dashboard.html')">لوحة التحكم</button>
+      <button id="nav-alerts" onclick="loadPage('alerts.html')" style="position: relative;">
+        🔔 التنبيهات
+        <span id="notificationBadge" style="position: absolute; top: -5px; right: -5px; 
+                 background: red; color: white; 
+                 border-radius: 50%; padding: 2px 6px; 
+                 font-size: 12px; display: none;">
+        </span>
+      </button>
+    </nav>
+  </header>
+
+  <!-- View selection: Recent vs All Month -->
+  <div class="view-selector" style="display: flex; justify-content: center; gap: 10px; margin: 15px 0;">
+    <button id="view-mode-today" onclick="loadTodayData()" class="btn-view">📅 اليوم</button>
+    <button id="view-mode-recent" onclick="loadRecentData()" class="btn-view active">📅 آخر يومين</button>
+    <button id="view-mode-all" onclick="loadMonthData()" class="btn-view">📅 عرض الشهر بالكامل</button>
+  </div>
+
+  <!-- Month/Year picker instead of date picker -->
+  <div class="date-controls" id="monthControls" style="display: flex;">
+    <select id="monthPicker">
+      <option value="1">يناير</option>
+      <option value="2">فبراير</option>
+      <option value="3">مارس</option>
+      <option value="4">أبريل</option>
+      <option value="5">مايو</option>
+      <option value="6">يونيو</option>
+      <option value="7">يوليو</option>
+      <option value="8">أغسطس</option>
+      <option value="9">سبتمبر</option>
+      <option value="10">أكتوبر</option>
+      <option value="11">نوفمبر</option>
+      <option value="12">ديسمبر</option>
+    </select>
+    <input type="number" id="yearPicker" min="2024" max="8000" value="2025">
+    <button onclick="loadMonthData()">تحديث الشهر</button>
+    <button onclick="loadYearData()" style="background-color: #673AB7;">تحديث السنة</button>
+  </div>
+
+  <div class="search-container-main" style="margin-bottom: 20px; display: flex; gap: 10px;">
+    <input type="text" id="filterTransactionInput" placeholder="🔍 بحث في المعاملات (اسم الصنف...)"
+      style="flex: 1; padding: 12px; border-radius: 8px; border: 2px solid #2196F3; font-size: 16px;">
+    <button onclick="filterTransactions()"
+      style="padding: 10px 20px; background: #2196F3; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">بحث</button>
+    <button onclick="clearTransactionFilter()"
+      style="padding: 10px 20px; background: #f44336; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">مسح</button>
+  </div>
+
+  <div class="search-container-main">
+    <input type="text" id="searchProductCustomer" placeholder="🔍 إضافة منتج جديد (اسم أو سيريال)">
+    <div id="searchResultsCustomer" class="search-results-main"></div>
+  </div>
+
+  <!-- صندوق بيانات المحل للطباعة -->
+  <div class="payment-section" style="background: #f0f8ff; border-top: 4px solid #2196F3;">
+    <h3 style="margin-top:0;">🖨️ طباعة بيانات العميل والمحل</h3>
+    <div class="payment-controls">
+      <input type="text" id="shopNameInput" placeholder="اسم المحل">
+      <button onclick="printCustomerInfoSticker()" class="btn-payment" style="background: #333;">🖨️ طباعة
+        الاستيكر</button>
+      <button onclick="forceSyncThisCustomer()" class="btn-payment" style="background: #795548; margin-right: 10px;">🔄
+        مزامنة شاملة للسحابة</button>
+    </div>
+  </div>
+
+  <div
+    style="background: var(--shirt-hex); color: white; padding: 10px; margin: 10px 0; border-radius: 5px; text-align: center; font-weight: bold;">
+    📅 عرض البيانات لـ: <span id="currentMonthName">جاري التحميل...</span>
+  </div>
+
+  <!-- جدول المعاملات -->
+  <table>
+    <thead>
+      <tr>
+        <th>التاريخ</th>
+        <th>الوقت</th>
+        <th>الصنف</th>
+        <th>الكمية</th>
+        <th>السعر</th>
+        <th>الإجمالي</th>
+        <th>النوع</th>
+        <th>ملاحظات</th>
+        <th>تحديد <input type="checkbox" id="selectAllRows" onclick="toggleSelectAllRows(this.checked)"></th>
+      </tr>
+    </thead>
+    <tbody id="customerTransactionTable"></tbody>
+  </table>
+
+  <div class="buttons-container">
+    <div class="add-buttons">
+      <button onclick="addRow()" class="btn-add">➕ إضافة منتج</button>
+      <button onclick="addReturnRow()" class="btn-return">↩️ إضافة مرتجع</button>
+      <button onclick="printSelectedReceipt()" class="btn-primary"
+        style="background-color: #2196F3; font-weight: bold;">🖨️ طباعة ريسيت المحدد</button>
+    </div>
+  </div>
+
+  <div id="summary">
+    إجمالي المبيعات: <span id="totalSales">0</span> |
+    إجمالي المرتجعات: <span id="totalReturns">0</span> |
+    إجمالي المدفوع: <span id="totalPayments">0</span> |
+    الصافي: <span id="netAmount">0</span>
+  </div>
+
+  <!-- Payment Section -->
+  <div class="payment-section">
+    <h3>إضافة دفعة</h3>
+    <div class="payment-controls">
+      <input type="number" id="paymentAmount" placeholder="المبلغ المدفوع" step="0.01">
+      <input type="text" id="paymentTime" placeholder="الوقت (مثال: 02:30 PM)" maxlength="8">
+      <select id="paymentMethod">
+        <option value="cash">نقدي (يدوي)</option>
+        <option value="wallet">محفظة إلكترونية</option>
+      </select>
+      <input type="text" id="paymentNotes" placeholder="ملاحظات الدفع">
+      <button onclick="addPayment()" class="btn-payment">💰 إضافة دفع</button>
+    </div>
+
+
+    <!-- تاريخ المدفوعات -->
+    <div class="card" style="margin-top: 20px;">
+      <h2>تاريخ المدفوعات</h2>
+      <div id="currentMonthTitle" style="text-align: center; margin: 10px 0; font-size: 1.2rem; font-weight: bold;">
+        مدفوعات شهر <span id="currentMonthName"></span>
+      </div>
+      <div class="payment-history">
+        <table id="paymentHistoryTable">
+          <thead>
+            <tr>
+              <th>التاريخ</th>
+              <th>الوقت</th>
+              <th>المبلغ</th>
+              <th>طريقة الدفع</th>
+              <th>ملاحظات</th>
+              <th>الإجراء</th>
+            </tr>
+          </thead>
+          <tbody id="paymentHistoryBody">
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="scroll-buttons">
+      <button id="scrollTopBtn">⬆️</button>
+      <button id="scrollBottomBtn">⬇️</button>
+    </div>
+
+    <div class="floating-actions">
+      <button id="floatingPrintBtn" onclick="printSelectedReceipt()" title="طباعة ريسيت المحدد">🖨️</button>
+    </div>
+
+    <script src="qrcode-helper.js"></script>
+    <script src="auth-check.js"></script>
+    <script src="custom-dialog.js"></script>
+    <script src="customer.js"></script>
+</body>
+
+</html>

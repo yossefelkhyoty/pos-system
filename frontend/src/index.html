@@ -1,0 +1,134 @@
+<!-- index.html -->
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <title>علي الجداوي </title>
+  <link rel="stylesheet" href="../assets/css/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <div id="globalNotification" class="alert hidden"></div>
+  <div id="connection-status" class="connection-status"></div>
+
+  <header>
+    <h1><span class="mohamed">علي الجداوي</span></h1>
+    <nav>
+      <button id="nav-home" onclick="loadPage('index.html')" class="active">الرئيسية</button>
+      <button id="nav-products" onclick="loadPage('products.html')">المنتجات</button>
+      <button id="nav-customers" onclick="loadPage('customers.html')">العملاء</button>
+      <button id="nav-dashboard" onclick="loadPage('dashboard.html')">لوحة التحكم</button>
+      <button id="nav-alerts" onclick="loadPage('alerts.html')" style="position: relative;">
+        🔔 التنبيهات
+        <span id="notificationBadge" style="position: absolute; top: -5px; right: -5px; 
+                 background: red; color: white; 
+                 border-radius: 50%; padding: 2px 6px; 
+                 font-size: 12px; display: none;">
+        </span>
+      </button>
+    </nav>
+  </header>
+
+
+  <!-- اختيار التاريخ وتحميل البيانات -->
+  <div class="header-controls">
+    <input type="date" id="datePicker" onchange="loadDataByDate()">
+    <button onclick="setTodayDate()" class="btn-today">📅 اليوم</button>
+    <div id="dayName"></div>
+  </div>
+  <div class="search-container-main">
+    <input type="text" id="searchProductMain" placeholder="🔍 بحث عن منتج (اسم أو سيريال)">
+    <div id="searchResultsMain" class="search-results-main"></div>
+  </div>
+
+
+  <!-- حقول البحث -->
+  <div class="search-container">
+    <input type="text" id="searchItem" placeholder="بحث عن صنف">
+    <input type="text" id="searchNotes" placeholder="بحث في الملاحظات">
+    <button onclick="search()">بحث</button>
+    <button onclick="clearSearch()">مسح</button>
+  </div>
+
+  <!-- فلترة التاريخ -->
+  <div class="filter-date">
+    <input type="number" id="filterYear" placeholder="السنة" min="2025" max="2100">
+    <input type="number" id="filterMonth" placeholder="الشهر" min="1" max="12">
+    <input type="number" id="filterDay" placeholder="اليوم (اختياري)" min="1" max="31">
+  </div>
+
+  <!-- نتائج البحث -->
+  <div id="searchResults"></div>
+
+  <!-- جدول المعاملات -->
+  <table>
+    <thead>
+      <tr>
+        <th>الصنف</th>
+        <th>الحساب</th>
+        <th>السحب</th>
+        <th>الملاحظات</th>
+        <th>الإجراء</th>
+      </tr>
+    </thead>
+    <tbody id="transactionTable"></tbody>
+  </table>
+
+  <!-- أزرار التحكم -->
+  <div class="buttons-container">
+    <div class="right-button">
+      <button onclick="addRow()">إضافة صف</button>
+    </div>
+    <div class="left-buttons">
+      <button onclick="saveData()">حفظ البيانات</button>
+      <button onclick="deleteAllData()">حذف كل البيانات</button>
+    </div>
+  </div>
+
+  <!-- ملخص -->
+  <div id="summary">مجموع الحساب: 0 | مجموع السحب: 0 | صافي الدخل: 0</div>
+
+
+
+
+  <div class="scroll-buttons">
+    <button id="scrollTopBtn">⬆️</button>
+    <button id="scrollBottomBtn">⬇️</button>
+  </div>
+
+  <!-- زر عائم لفتح بوكس الاستلام -->
+  <button id="floatingReceptionBtn" onclick="toggleReceptionModal()"
+    style="position: fixed; bottom: 85px; right: 20px; border-radius: 50%; width: 60px; height: 60px; font-size: 24px; background: #FF9800; color: white; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.3); cursor: pointer; z-index: 2000;display:flex;justify-content: center;">📝</button>
+
+  <!-- بوكس الاستلام (مودال) -->
+  <div id="receptionModal"
+    style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 3000; display: none; justify-content: center; align-items: center;">
+    <div
+      style="background: white; width: 90%; max-width: 400px; padding: 20px; border-radius: 12px; position: relative;">
+      <h3 style="color: #333; margin-top:0;">📦 إيصال استلام جهاز</h3>
+      <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 15px;">
+        <input type="text" id="personName" placeholder="اسم الشخص :" style="width: 100%; box-sizing: border-box;">
+        <input type="text" id="faultDesc" placeholder="العطل :" style="width: 100%; box-sizing: border-box;">
+        <input type="text" id="faultExtra" placeholder="العطل اضافي :" style="width: 100%; box-sizing: border-box;">
+        <input type="text" id="devicePassword" placeholder="باسورد :" style="width: 100%; box-sizing: border-box;">
+        <div style="text-align: right; font-size: 14px; color: #666; margin-right: 5px;">تاريخ الاستلام :</div>
+        <input type="date" id="receiveDate" style="width: 100%; box-sizing: border-box;">
+
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
+          <button onclick="printReceptionSticker()" style="flex: 1; background: #4CAF50; margin: 0;">🖨️ طباعة</button>
+          <button onclick="toggleReceptionModal()" style="flex: 1; background: #f44336; margin: 0;">إغلاق</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="qrcode-helper.js"></script>
+  <script src="auth-check.js"></script>
+  <script src="custom-dialog.js"></script>
+  <script src="renderer.js"></script>
+</body>
+
+</html>

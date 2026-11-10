@@ -1,0 +1,39 @@
+/* src/index.css */
+
+/* CSS Reset وتنسيقات أساسية */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Tajawal', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  line-height: 1.6;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+/* تنسيقات النصوص العربية */
+[dir="rtl"] {
+  text-align: right;
+}
+
+/* تنسيقات للأزرار */
+button {
+  font-family: 'Tajawal', sans-serif;
+}
+
+/* تنسيقات للحقول */
+input, select, textarea {
+  font-family: 'Tajawal', sans-serif;
+}

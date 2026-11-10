@@ -1,0 +1,75 @@
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Database
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Build outputs
+build/
+dist/
+*.exe
+*.dmg
+*.pkg
+*.deb
+*.rpm
+*.AppImage
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# Web build
+web/build/
+web/dist/
+
+# Electron
+out/
+packages/
+
+# Archives
+*.zip
+*.tar.gz
+*.rar
+
+# Deployments
+.vercel/
+
+# Internal Docs & Setup Scripts
+CV_PROJECT_DETAILS.md
+QUICK_START_GITHUB.md
+QUICK_START_WEB.md
+SAAS_ARCHITECTURE_PLAN.md
+setup-github.ps1
+ELECTRON_BUILD.md
+
+

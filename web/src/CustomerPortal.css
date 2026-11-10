@@ -1,0 +1,801 @@
+/* src/CustomerPortal.css */
+
+/* استخدام نفس CSS Variables من AdminApp */
+.customer-portal {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Tajawal', sans-serif;
+  background: var(--bg-primary);
+  min-height: 100vh;
+  color: var(--text-primary);
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+.portal-header {
+  background: var(--header-bg);
+  color: white;
+  padding: 28px;
+  border-radius: 16px;
+  margin-bottom: 24px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3);
+  transition: background 0.3s ease;
+}
+
+.portal-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.dark-mode-toggle-header {
+  background: rgba(255, 255, 255, 0.25);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  padding: 8px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1.2rem;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.dark-mode-toggle-header:hover {
+  background: rgba(255, 255, 255, 0.35);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.dark-mode-toggle-floating {
+  position: fixed;
+  bottom: 90px;
+  left: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: white;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+  z-index: 1000;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dark-mode-toggle-floating:hover {
+  background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+}
+
+.portal-header h1 {
+  margin: 0 0 15px 0;
+  font-size: 2rem;
+}
+
+.customer-info {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.customer-info p {
+  margin: 5px 0;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 10px 18px;
+  border-radius: 10px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  font-weight: 500;
+}
+
+.filters-section {
+  background: var(--bg-secondary);
+  padding: 24px;
+  border-radius: 16px;
+  margin-bottom: 24px;
+  text-align: center;
+  box-shadow: var(--card-shadow);
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.filters {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.filters select, .filters button {
+  padding: 12px 20px;
+  border: 2px solid var(--border-color);
+  border-radius: 10px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.filters select {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.filters select:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+}
+
+.filters button {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+}
+
+.filters button:hover {
+  background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+
+/* بطاقة الرصيد الحالي */
+.current-balance-card {
+  background: var(--bg-secondary);
+  padding: 28px;
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: var(--card-shadow);
+  margin-bottom: 24px;
+  border-left: 6px solid #6366f1;
+  position: relative;
+  overflow: hidden;
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.current-balance-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100px;
+  height: 100px;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 70%);
+  border-radius: 50%;
+  transform: translate(30px, -30px);
+}
+
+.current-balance-card h3 {
+  margin: 0 0 12px 0;
+  color: var(--text-primary);
+  font-size: 1.4rem;
+  font-weight: 700;
+  transition: color 0.3s ease;
+}
+
+.current-balance-card .balance-amount {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin: 12px 0;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.current-balance-card small {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+/* تصميم الكروت الأفقية */
+.horizontal-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.horizontal-card {
+  background: var(--bg-secondary);
+  border-radius: 14px;
+  padding: 18px;
+  box-shadow: var(--card-shadow);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 90px;
+  position: relative;
+  overflow: hidden;
+  color: var(--text-primary);
+}
+
+.horizontal-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 5px;
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.horizontal-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.horizontal-card:hover::before {
+  width: 6px;
+}
+
+/* ألوان مختلفة لكل نوع */
+.horizontal-card.transaction.sale {
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  border-left: 5px solid #10b981;
+}
+
+.horizontal-card.transaction.sale::before {
+  background: #10b981;
+}
+
+.horizontal-card.transaction.return {
+  background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%);
+  border-left: 5px solid #f59e0b;
+}
+
+.horizontal-card.transaction.return::before {
+  background: #f59e0b;
+}
+
+.horizontal-card.payment {
+  background: linear-gradient(135deg, #ddd6fe 0%, #c4b5fd 100%);
+  border-left: 5px solid #8b5cf6;
+}
+
+.horizontal-card.payment::before {
+  background: #8b5cf6;
+}
+
+.horizontal-card.total-card {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+  color: white;
+  border-left: 6px solid #ffffff;
+  cursor: default;
+  margin-top: 16px;
+  box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+}
+
+.card-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.date-type {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.date-type .date {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.horizontal-card.total-card .date {
+  color: white;
+  font-size: 1rem;
+}
+
+.type-badge {
+  padding: 4px 12px;
+  border-radius: 15px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: white;
+}
+
+.horizontal-card.transaction.sale .type-badge {
+  background-color: #4caf50;
+}
+
+.horizontal-card.transaction.return .type-badge {
+  background-color: #ff9800;
+}
+
+.horizontal-card.payment .type-badge {
+  background-color: #2196f3;
+}
+
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.product-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.horizontal-card.total-card .product-name {
+  color: white;
+}
+
+.quantity-price {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.payment-method {
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.horizontal-card.total-card .payment-method {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.card-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  min-width: 120px;
+}
+
+.amount-section .amount {
+  font-size: 1.3rem;
+  font-weight: bold;
+}
+
+.horizontal-card.transaction.sale .amount {
+  color: #2e7d32;
+}
+
+.horizontal-card.transaction.return .amount {
+  color: #ef6c00;
+}
+
+.horizontal-card.payment .amount {
+  color: #1565c0;
+}
+
+.horizontal-card.total-card .amount {
+  color: white;
+  font-size: 1.4rem;
+}
+
+.balance-section .balance {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.horizontal-card.total-card .balance {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.summary-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.85rem;
+}
+
+.summary-details span {
+  padding: 1px 0;
+}
+
+.transactions-section {
+  background: var(--bg-secondary);
+  padding: 24px;
+  border-radius: 16px;
+  margin-bottom: 24px;
+  box-shadow: var(--card-shadow);
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.transactions-section h2 {
+  margin-top: 0;
+  color: var(--text-primary);
+  border-bottom: 3px solid #6366f1;
+  padding-bottom: 12px;
+  font-size: 1.5rem;
+  font-weight: 700;
+  transition: color 0.3s ease;
+}
+
+.no-data {
+  text-align: center;
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 40px 20px;
+}
+
+.portal-footer {
+  text-align: center;
+  margin-top: 30px;
+  color: var(--text-muted);
+  padding: 20px;
+  border-top: 1px solid var(--border-color);
+  transition: color 0.3s ease, border-color 0.3s ease;
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 50vh;
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #e5e7eb;
+  border-top: 4px solid #6366f1;
+  border-right: 4px solid #8b5cf6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error {
+  text-align: center;
+  padding: 40px;
+  color: #c62828;
+}
+
+/* زر التنقل العائم */
+.scroll-button {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: white;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+  z-index: 1000;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.scroll-button:hover {
+  background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+}
+
+/* أزرار التصفية */
+.filter-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.filter-buttons button {
+  background-color: var(--bg-secondary);
+  color: var(--text-secondary);
+  border: 2px solid var(--border-color);
+  padding: 10px 18px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.filter-buttons button:hover {
+  background-color: #e5e7eb;
+  transform: translateY(-1px);
+}
+
+.filter-buttons button.active {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: white;
+  border-color: #6366f1;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+}
+
+/* المودال */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  padding: 20px;
+}
+
+.modal-content {
+  background: var(--bg-secondary);
+  border-radius: 10px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  animation: modalAppear 0.3s ease-out;
+  color: var(--text-primary);
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+@keyframes modalAppear {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  border-bottom: 2px solid var(--border-color);
+  background: var(--bg-primary);
+  border-radius: 16px 16px 0 0;
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+.modal-header h3 {
+  margin: 0;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 700;
+  font-size: 1.3rem;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.close-button:hover {
+  background-color: #eee;
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-color);
+  transition: border-color 0.3s ease;
+}
+
+.detail-row.total {
+  border-top: 3px solid #6366f1;
+  border-bottom: none;
+  font-weight: bold;
+  margin-top: 12px;
+  padding-top: 16px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.detail-row .label {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.detail-row .value {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.detail-row.total .value {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.modal-footer {
+  padding: 20px;
+  border-top: 1px solid var(--border-color);
+  text-align: left;
+  transition: border-color 0.3s ease;
+}
+
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+
+/* تحسينات للاستجابة على الهواتف */
+@media (max-width: 768px) {
+  .customer-info {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .filters {
+    flex-direction: column;
+  }
+  
+  .filter-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .scroll-button {
+    bottom: 10px;
+    left: 10px;
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+  
+  
+  .current-balance-card  {
+    font-size: 1.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .customer-portal {
+    padding: 10px;
+  }
+  
+  .filters {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .filters select, .filters button {
+    width: 100%;
+  }
+  
+  .filter-buttons {
+    width: 100%;
+  }
+  
+  .filter-buttons button {
+    flex: 1;
+  }
+  
+  .current-balance-card {
+    padding: 15px;
+  }
+  
+  .current-balance-card .balance-amount {
+    font-size: 1.6rem;
+  }
+  
+  .horizontal-card {
+    padding: 10px;
+  }
+  
+  
+  .card-right {
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .amount-section .amount {
+    font-size: 1.2rem;
+  }
+  
+  .detail-row {
+    flex-direction: column;
+    gap: 5px;
+  }
+}
+
+@media (max-width: 360px) {
+  .horizontal-card {
+    padding: 8px;
+  }
+  
+  .product-name {
+    font-size: 0.9rem;
+  }
+  
+  .amount-section .amount {
+    font-size: 1.1rem;
+  }
+  
+  .balance-section .balance {
+    font-size: 0.8rem;
+  }
+}
+
+.total-card .summary-details {
+  margin-bottom: 8px;
+  font-size: 18px;
+}
+
+.total-divider {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.4);
+  margin: 6px 0;
+}
+
+.final-row {
+  display: flex;
+  font-size: 1rem;
+  font-weight: bold;
+  color: white;
+}
+
+.final-row .label {
+  opacity: 0.9;
+}
+
+.final-row .value {
+  font-size: 1.2rem;
+}

@@ -1,0 +1,50 @@
+{
+  "name": "pos-system",
+  "version": "1.0.0",
+  "description": "نظام إدارة نقاط البيع والمحاسبة (POS System)",
+  "main": "backend/src/main.js",
+  "author": "Youssef Elkhyoty",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "start:backend": "electron backend/src/main.js",
+    "start:web": "cd web && npm start",
+    "build": "electron-builder",
+    "dist": "electron-packager . \"Ali Elgdawy\" --platform=win32 --arch=x64 --out=dist --overwrite --icon=./frontend/assets/img/icon.ico --app-version=1.0.0"
+  },
+  "devDependencies": {
+    "electron": "^35.7.5",
+    "electron-builder": "^25.1.8",
+    "electron-packager": "^17.1.2"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.57.4",
+    "dotenv": "^17.2.2",
+    "node-cron": "^4.2.1",
+    "react-router-dom": "^7.9.1",
+    "sqlite3": "^5.1.7"
+  },
+  "build": {
+    "appId": "com.yossef.financialtracker",
+    "productName": "Ali Elgdawy",
+    "directories": {
+      "output": "build"
+    },
+    "files": [
+      "**/*",
+      "!node_modules/.cache/**/*"
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  },
+  "keywords": [],
+  "type": "commonjs"
+}

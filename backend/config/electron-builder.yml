@@ -1,0 +1,11 @@
+appId: com.myapp
+directories:
+  output: dist
+files:
+  - "!node_modules/sqlite3/build/Release"
+  - "!node_modules/.cache"
+  - "!dist"
+  - "!build"
+extraResources:
+  - from: "node_modules/sqlite3/build/Release"
+    to: "build/Release"

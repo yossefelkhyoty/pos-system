@@ -1,0 +1,163 @@
+<!-- users.html -->
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>إدارة المستخدمين - علي الجداوي</title>
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        .perm-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 15px 0;
+            justify-content: center;
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .perm-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .user-table th,
+        .user-table td {
+            padding: 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="globalNotification" class="alert hidden"></div>
+    <header>
+        <h1>إدارة المستخدمين</h1>
+        <nav>
+            <button id="nav-home" onclick="loadPage('index.html')">الرئيسية</button>
+            <button id="nav-logout" style="background:#f44336" onclick="authIpc.send('logout')">تسجيل خروج</button>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="card"
+            style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px;">
+            <h2 style="margin: 0;">الإعدادات العامة</h2>
+            <button onclick="openChangePasswordModal()" style="background: #2196F3;">🔐 تغيير كلمة مرور الأدمن</button>
+        </div>
+
+        <div class="card">
+            <h2 id="formTitle">إضافة مستخدم جديد</h2>
+            <form id="userForm">
+                <input type="hidden" id="editUserId">
+                <div class="form-row">
+                    <input type="text" id="username" placeholder="اسم المستخدم" required>
+                    <input type="password" id="password" placeholder="كلمة المرور" required>
+                </div>
+
+                <h3 style="margin-top: 20px;">الصلاحيات:</h3>
+                <div style="margin-bottom: 15px; text-align: right;">
+                    <label style="font-weight: bold; color: var(--shirt-hex); cursor: pointer;">
+                        <input type="checkbox" id="selectAllPerms" onchange="toggleAllPermissions(this.checked)"> تحديد
+                        الكل (كامل الصلاحيات)
+                    </label>
+                </div>
+
+                <div class="table-container">
+                    <table class="perm-table" style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                        <thead>
+                            <tr style="background: #eee;">
+                                <th style="text-align: right; padding: 10px;">الصفحة / القسم</th>
+                                <th>دخول</th>
+                                <th>إضافة</th>
+                                <th>حذف</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="text-align: right; padding: 10px; font-weight: bold;">الرئيسية</td>
+                                <td><input type="checkbox" value="page_index" class="perm-check"></td>
+                                <td><input type="checkbox" value="add_index" class="perm-check"></td>
+                                <td><input type="checkbox" value="delete_index" class="perm-check"></td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: right; padding: 10px; font-weight: bold;">المنتجات</td>
+                                <td><input type="checkbox" value="page_products" class="perm-check"></td>
+                                <td><input type="checkbox" value="add_products" class="perm-check"></td>
+                                <td><input type="checkbox" value="delete_products" class="perm-check"></td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: right; padding: 10px; font-weight: bold;">العملاء</td>
+                                <td><input type="checkbox" value="page_customers" class="perm-check"></td>
+                                <td><input type="checkbox" value="add_customers" class="perm-check"></td>
+                                <td><input type="checkbox" value="delete_customers" class="perm-check"></td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: right; padding: 10px; font-weight: bold;">لوحة التحكم</td>
+                                <td><input type="checkbox" value="page_dashboard" class="perm-check"></td>
+                                <td>-</td>
+                                <td>-</td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: right; padding: 10px; font-weight: bold;">التنبيهات</td>
+                                <td><input type="checkbox" value="page_alerts" class="perm-check"></td>
+                                <td>-</td>
+                                <td>-</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-actions" style="justify-content: center; gap: 10px;">
+                    <button type="submit" id="submitBtn">إضافة مستخدم</button>
+                    <button type="button" id="cancelEditBtn" class="hidden" onclick="resetForm()"
+                        style="background: #666;">إلغاء التعديل</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>المستخدمين الحاليين</h2>
+            <div class="table-container">
+                <table class="user-table">
+                    <thead>
+                        <tr>
+                            <th>الاسم</th>
+                            <th>الرتبة</th>
+                            <th>الصلاحيات</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- مودال تغيير كلمة مرور الأدمن -->
+    <div id="changePasswordModal" class="modal hidden">
+        <div class="modal-content">
+            <h2>🔐 تغيير كلمة مرور الأدمن</h2>
+            <form id="changePasswordForm">
+                <div style="display: flex; flex-direction: column; gap: 15px; margin: 20px 0;">
+                    <input type="password" id="oldPassword" placeholder="كلمة المرور الحالية" required>
+                    <input type="password" id="newPassword" placeholder="كلمة المرور الجديدة" required>
+                    <input type="password" id="confirmNewPassword" placeholder="تأكيد كلمة المرور الجديدة" required>
+                </div>
+                <div class="modal-actions" style="display: flex; justify-content: center; gap: 10px;">
+                    <button type="submit" style="background: #4CAF50;">حفظ</button>
+                    <button type="button" onclick="closeChangePasswordModal()"
+                        style="background: #f44336;">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="auth-check.js"></script>
+    <script src="custom-dialog.js"></script>
+    <script src="users.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,137 @@
+<!-- customers.html -->
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <title>إدارة العملاء - علي الجداوي</title>
+  <link rel="stylesheet" href="../assets/css/loky.css">
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <div id="globalNotification" class="notification-box"></div>
+  <div id="connection-status" class="connection-status"></div>
+  <header>
+    <h1><span class="mohamed">العملاء </span></h1>
+    <nav>
+      <button id="nav-home" onclick="loadPage('index.html')">الرئيسية</button>
+      <button id="nav-products" onclick="loadPage('products.html')">المنتجات</button>
+      <button id="nav-customers" onclick="loadPage('customers.html')" class="active">العملاء</button>
+      <button id="nav-dashboard" onclick="loadPage('dashboard.html')">لوحة التحكم</button>
+      <button id="nav-alerts" onclick="loadPage('alerts.html')" style="position: relative;">
+        🔔 التنبيهات
+        <span id="notificationBadge" style="position: absolute; top: -5px; right: -5px; 
+                 background: red; color: white; 
+                 border-radius: 50%; padding: 2px 6px; 
+                 font-size: 12px; display: none;">
+        </span>
+      </button>
+    </nav>
+
+  </header>
+
+  <div class="container">
+    <!-- إضافة عميل جديد -->
+    <div class="card">
+      <h2>إضافة عميل جديد</h2>
+      <form id="customerForm">
+        <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 15px;">
+          <div style="display: flex; flex-direction: column; gap: 5px;">
+            <label style="font-weight: bold; color: var(--shirt-hex); text-align: right;">اسم العميل:</label>
+            <input type="text" id="customerName" placeholder="" required
+              style="width: 100%; border: 2px solid #ddd; padding: 12px;">
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 5px;">
+            <label style="font-weight: bold; color: var(--shirt-hex); text-align: right;">رقم التليفون:</label>
+            <input type="text" id="customerPhone" placeholder=""
+              style="width: 100%; border: 2px solid #ddd; padding: 12px;">
+          </div>
+        </div>
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
+          <button type="submit" style="flex: 1; margin: 0; padding: 12px;">إضافة عميل</button>
+          <button type="button" onclick="startCustomerMerge()"
+            style="flex: 1; margin: 0; background-color: #607D8B; padding: 12px;">🔄 دمج نسخة احتياطية</button>
+          <button type="button" onclick="forceSyncAllCustomers()"
+            style="flex: 1.5; margin: 0; background-color: #4CAF50; padding: 12px;">🚀 مزامنة كافة العملاء
+            للسحابة</button>
+          <button type="button" onclick="pullFromSupabase()"
+            style="flex: 1.5; margin: 0; background-color: #2196F3; padding: 12px;">☁️ جلب البيانات من السحابة</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- البحث عن العملاء -->
+    <div class="card">
+      <h2>بحث عن عميل</h2>
+      <div class="search-controls">
+        <input type="text" id="searchCustomers" placeholder="بحث بالاسم" oninput="searchCustomers()">
+        <input type="text" id="searchCustomerPhone" placeholder="بحث برقم الهاتف" oninput="searchCustomersByPhone()">
+        <button onclick="clearSearch()">مسح البحث</button>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th> <!-- الرقم المسلسل -->
+              <th>الاسم</th>
+              <th>رقم الهاتف</th>
+              <th>التاريخ</th>
+              <th>الرصيد</th>
+              <th>الإجراءات</th>
+            </tr>
+          </thead>
+          <tbody id="customersTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- نافذة تعديل العميل -->
+  <div id="editCustomerModal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <h2>تعديل بيانات العميل</h2>
+      <input type="hidden" id="editCustomerId">
+      <input type="text" id="editCustomerName" placeholder="اسم العميل">
+      <input type="text" id="editCustomerPhone" placeholder="رقم الهاتف">
+      <input type="text" id="editCustomerNotes" placeholder="ملاحظات">
+      <div class="modal-actions">
+        <button onclick="saveCustomerEdit()">💾 حفظ</button>
+        <button onclick="closeEditModal()">❌ إلغاء</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- نافذة دمج العميل من نسخة احتياطية -->
+  <div id="mergeCustomerModal" class="modal" style="display:none;">
+    <div class="modal-content" style="max-width: 90%; width: 1000px;">
+      <h2>اختر العميل المراد استيراده</h2>
+      <p id="backupPathDisplay" style="font-size: 12px; color: #666;"></p>
+      <div class="table-container" style="max-height: 450px; overflow-y: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>الاسم</th>
+              <th>الهاتف</th>
+              <th>التاريخ</th>
+              <th>إجراء</th>
+            </tr>
+          </thead>
+          <tbody id="backupCustomersBody"></tbody>
+        </table>
+      </div>
+      <div class="modal-actions">
+        <button onclick="closeMergeModal()">❌ إلغاء</button>
+      </div>
+    </div>
+  </div>
+
+
+  <script src="auth-check.js"></script>
+  <script src="custom-dialog.js"></script>
+  <script src="customers.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,129 @@
+/* src/App.css */
+body {
+  margin: 0;
+  font-family: 'Tajawal', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.App {
+  min-height: 100vh;
+}
+
+/* أنماط عامة للتطبيق */
+.text-center {
+  text-align: center;
+}
+
+.mt-20 {
+  margin-top: 20px;
+}
+
+.mb-20 {
+  margin-bottom: 20px;
+}
+
+/* تنسيقات للروابط */
+a {
+  color: #6366f1;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+a:hover {
+  color: #8b5cf6;
+  text-decoration: underline;
+}
+
+/* تنسيقات للأزرار */
+.btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+
+.btn-secondary {
+  background-color: #95a5a6;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background-color: #7f8c8d;
+}
+
+/* تنسيقات جديدة للبحث */
+.search-input {
+  padding: 12px 20px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  width: 300px;
+  font-size: 1rem;
+  margin: 10px 0;
+  background: white;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1), 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* تنسيقات التنقل */
+.nav-tabs {
+  display: flex;
+  border-bottom: 3px solid #e5e7eb;
+  margin-bottom: 24px;
+  background: white;
+  border-radius: 12px;
+  padding: 8px;
+}
+
+.nav-tab {
+  padding: 12px 28px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  color: #6b7280;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.nav-tab.active {
+  color: #6366f1;
+  background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
+}
+
+.nav-tab:hover {
+  color: #6366f1;
+  background-color: #f3f4f6;
+}
